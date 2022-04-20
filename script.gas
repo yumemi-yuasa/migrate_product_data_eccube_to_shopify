@@ -1,0 +1,46 @@
+function myFunction() {
+    const ss = SpreadsheetApp.getActiveSpreadsheet(); //アクティブなスプレッドシートを取得
+    const sh = ss.getSheetByName("ShopifyにimportしたいCSV");
+    const ec_product_list = ss.getSheetByName("ECCUBEからエクスポートしたCSV");
+    const lastRow = sh.getLastRow();
+
+    //画像のURL
+    const image_path_url = "URLをここに";
+
+    // 取得したい画像枚数
+    const img_count = 4;
+
+    // 最小の行
+    const first_row = 2;
+    for (let i = first_row; i <= lastRow * img_count; i++) {
+        let keyword = sh.getRange(i, 15).getValue();
+        if (!keyword) {
+            if (sh.getRange(i, 1).getValue() == "") {
+                break;
+            }
+            continue;
+        }
+        let textFinder = ec_product_list.createTextFinder(keyword);
+        let cells = textFinder.findAll();
+        let line = cells[0].getRow();
+        
+        //画像ファイルのセル位置
+        let image_path_row = 26;
+        if (ec_product_list.getRange(line, image_path_row).getValue()) {
+
+            // 4回実行
+            for (let $j = 0; $j < 4; $j++) {
+                image_path_row = image_path_row + img_count;
+                if (ec_product_list.getRange(line, image_path_row).getValue()) {
+                    
+                    // 行を追加
+                    sh.insertRowAfter(i);
+                    i = i + 1;
+                    sh.getRange(i, 1).setValue(sh.getRange(i - 1, 1).getValue());
+                    sh.getRange(i, 26).setValue(image_path_url + ec_product_list.getRange(line, image_path_row).getValue());
+                    sh.getRange(i, 27).setValue($j+2);
+                }
+            }
+        }
+    }
+}
